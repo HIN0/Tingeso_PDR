@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # Base de Datos Entradas
+  db-entradas:
+    image: postgres:15-alpine
+    container_name: db-entradas
+    environment:
+      POSTGRES_DB: db_entradas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./init-db/entradas.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # Base de Datos Salidas
+  db-salidas:
+    image: postgres:15-alpine
+    container_name: db-salidas
+    environment:
+      POSTGRES_DB: db_salidas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5434:5432"
+    volumes:
+      - ./init-db/salidas.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # Servidor de Configuración
+  config-server:
+    image: config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./configurations:/configurations
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+      - SPRING_CLOUD_CONFIG_SERVER_NATIVE_SEARCH_LOCATIONS=file:/configurations
+
+  # Microservicio Entradas
+  ms-entradas:
+    image: ms-entradas
+    container_name: ms-entradas
+    ports:
+      - "8081:8081"
+    depends_on:
+      - config-server
+      - db-entradas
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-entradas:5432/db_entradas
+
+  # Microservicio Salidas
+  ms-salidas:
+    image: ms-salidas
+    container_name: ms-salidas
+    ports:
+      - "8082:8082"
+    depends_on:
+      - config-server
+      - db-salidas
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db-salidas:5432/db_salidas
+
+  # Microservicio Resumen
+  ms-resumen:
+    image: ms-resumen
+    container_name: ms-resumen
+    ports:
+      - "8083:8083"
+    depends_on:
+      - config-server
+      - ms-entradas
+      - ms-salidas
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - SERVICIO_ENTRADAS_URL=http://ms-entradas:8081/api/entradas/reporte
+      - SERVICIO_SALIDAS_URL=http://ms-salidas:8082/api/salidas/reporte
+
+  # API Gateway
+  api-gateway:
+    image: api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - config-server
+    environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
