@@ -32,6 +32,10 @@ public class ResumenService {
         EntradaDTO[] entradas = restTemplate.getForObject(entradasUrl + query, EntradaDTO[].class);
         SalidaDTO[] salidas = restTemplate.getForObject(salidasUrl + query, SalidaDTO[].class);
 
+        // Validar que no sean nulos antes de procesar
+        if (entradas == null) entradas = new EntradaDTO[0];
+        if (salidas == null) salidas = new SalidaDTO[0];
+
         List<ReporteRowDTO> reporte = new ArrayList<>();
 
         // 2. Mapear entradas a filas del reporte
