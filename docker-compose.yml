@@ -43,6 +43,7 @@ services:
   ms-entradas:
     image: ms-entradas
     container_name: ms-entradas
+    restart: always
     ports:
       - "8081:8081"
     depends_on:
@@ -56,6 +57,7 @@ services:
   ms-salidas:
     image: ms-salidas
     container_name: ms-salidas
+    restart: always
     ports:
       - "8082:8082"
     depends_on:
@@ -69,6 +71,7 @@ services:
   ms-resumen:
     image: ms-resumen
     container_name: ms-resumen
+    restart: always
     ports:
       - "8083:8083"
     depends_on:
@@ -84,6 +87,7 @@ services:
   api-gateway:
     image: api-gateway
     container_name: api-gateway
+    restart: always
     ports:
       - "8080:8080"
     depends_on:
