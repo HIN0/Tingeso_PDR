@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.tingeso</groupId>
-	<artifactId>api-gateaway</artifactId>
+	<artifactId>api-gateway</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>api-gateaway</name>
+	<name>api-gateway</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
 	<licenses>
