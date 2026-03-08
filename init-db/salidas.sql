@@ -8,6 +8,6 @@ CREATE TABLE IF NOT EXISTS salidas (
 );
 
 INSERT INTO salidas (fecha, tipo_documento, num_documento, motivo, monto) VALUES 
-('2024-03-05', 'Factura', 'F-100', 'Artículos de Oficina', 50000.00),
-('2024-03-10', 'Boleta', 'B-55', 'Limpieza', 25000.00),
-('2024-03-20', 'Factura', 'F-101', 'Reparaciones Menores', 120000.00);
+('2026-03-01', 'Factura', 'F-100', 'Artículos de Oficina', 50000.00),
+('2026-03-03', 'Boleta', 'B-55', 'Limpieza', 25000.00),
+('2026-03-05', 'Factura', 'F-101', 'Reparaciones Menores', 120000.00);

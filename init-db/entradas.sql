@@ -6,5 +6,5 @@ CREATE TABLE IF NOT EXISTS entradas (
 );
 
 INSERT INTO entradas (fecha, nro_recibo, monto) VALUES 
-('2024-03-01', 'REC-001', 500000.00),
-('2024-03-15', 'REC-002', 200000.00);
+('2026-03-01', 'REC-001', 500000.00),
+('2026-03-05', 'REC-002', 200000.00);
