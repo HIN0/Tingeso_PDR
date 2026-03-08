@@ -1,3 +1,4 @@
+/* Estilos globales */
 body {
   font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: #f4f7f6;
@@ -6,6 +7,7 @@ body {
   color: #333;
 }
 
+/* Contenedor principal */
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -15,12 +17,14 @@ body {
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
+/* Estilos para las pestañas */
 .tabs {
   display: flex;
   margin-bottom: 20px;
   border-bottom: 2px solid #eee;
 }
 
+/* Estilos para los botones de las pestañas */
 .tab-button {
   flex: 1;
   padding: 10px;
@@ -31,23 +35,27 @@ body {
   border-bottom: 3px solid transparent;
 }
 
+/* Estilos para la pestaña activa */
 .tab-button.active {
   border-bottom-color: #0056b3;
   color: #0056b3;
   font-weight: bold;
 }
 
+/* Estilos para los formularios */
 .form-group {
   margin-bottom: 15px;
   display: flex;
   flex-direction: column;
 }
 
+/* Estilos para las etiquetas de los formularios */
 label {
   margin-bottom: 5px;
   font-weight: 500;
 }
 
+/* Estilos para los inputs y selects */
 input, select {
   padding: 10px;
   border: 1px solid #ccc;
@@ -55,8 +63,9 @@ input, select {
   font-size: 14px;
 }
 
+/* Estilos para el botón de envío */
 button.submit-btn {
-  background-color: #0056b3;
+  background-color:#28a745;
   color: white;
   border: none;
   padding: 10px 20px;
@@ -66,10 +75,12 @@ button.submit-btn {
   width: 100%;
 }
 
+/* Estilos para el botón de envío deshabilitado */
 button.submit-btn:disabled {
   background-color: #ccc;
 }
 
+/* Estilos para los mensajes de alerta */
 .alert {
   padding: 10px;
   margin-bottom: 15px;
@@ -77,19 +88,91 @@ button.submit-btn:disabled {
   text-align: center;
 }
 
+/* Estilos para alertas de éxito y error */
 .alert.success { background-color: #d4edda; color: #155724; }
 .alert.error { background-color: #f8d7da; color: #721c24; }
 
+/* Estilos para las tablas */
 table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
 }
 
+/* Estilos para las celdas de las tablas */
 th, td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
 }
 
+/* Estilo para las filas pares */
 th { background-color: #f8f9fa; }
+
+/* Eliminar flechas de inputs numéricos en Chrome, Safari, Edge y Opera */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Eliminar flechas de inputs numéricos en Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Estilo visual para el botón deshabilitado (Heurística: Visibilidad del estado) */
+button.submit-btn:disabled {
+  background-color: #dc3545;
+  color: white;
+  cursor: not-allowed;
+}
+
+/* Borde rojo para indicar campos obligatorios vacíos */
+.input-error {
+  border: 2px solid #dc3545 !important;
+  outline: none;
+}
+
+/* Validaciones de borde */
+.input-error {
+  border: 2px solid #dc3545 !important;
+  outline: none;
+}
+
+/* Validaciones de borde para éxito */
+.input-success {
+  border: 2px solid #28a745 !important;
+  outline: none;
+}
+
+/* Contenedor para iconos dentro de inputs */
+.input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Estilos para inputs y selects con iconos */
+.input-icon-wrapper input, 
+.input-icon-wrapper select {
+  padding-left: 35px; /* Deja espacio para el icono a la izquierda */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Estilos para los iconos dentro de los inputs */
+.input-icon {
+  position: absolute;
+  left: 10px;
+  color: #0008ff;
+  font-size: 16px;
+  pointer-events: none; /* Evita que el icono bloquee el clic en el input */
+}
+
+/* Contenedor para centrar y encoger los formularios */
+.form-wrapper {
+  max-width: 450px; 
+  margin: 0 auto;   
+}

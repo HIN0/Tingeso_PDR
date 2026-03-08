@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { FaCalendarAlt, FaReceipt, FaMoneyBillWave, FaFileInvoice, FaClipboardList } from 'react-icons/fa';
 import './App.css';
 
 const API_URL = 'http://localhost:8080/api';
@@ -9,7 +10,7 @@ function App() {
   const [status, setStatus] = useState({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
 
-  // Estados de formularios
+  // El monto se guarda como string de solo números ('440000') para facilitar el manejo
   const [entrada, setEntrada] = useState({ fecha: '', nroRecibo: '', monto: '' });
   const [salida, setSalida] = useState({ fecha: '', tipoDocumento: 'Boleta', numDocumento: '', motivo: 'Artículos de oficina', monto: '' });
   const [fechasReporte, setFechasReporte] = useState({ inicio: '', fin: '' });
@@ -29,6 +30,23 @@ function App() {
     setStatus({ type, message });
     setTimeout(() => setStatus({ type: '', message: '' }), 5000);
   };
+
+  // Función para formatear el dinero visualmente (ej: 440000 -> 440.000)
+  const formatCurrency = (val) => {
+    if (val === '') return '';
+    const parsed = parseInt(val, 10);
+    if (isNaN(parsed)) return '';
+    return parsed.toLocaleString('es-CL');
+  };
+
+  // Función para limpiar el texto y dejar solo los números
+  const handleMontoChange = (e, state, setState) => {
+    const rawValue = e.target.value.replace(/\D/g, ''); // Expresión regular que elimina todo lo que no sea dígito
+    setState({ ...state, monto: rawValue });
+  };
+
+  const isEntradaValid = entrada.fecha !== '' && entrada.nroRecibo.trim() !== '' && entrada.monto !== '';
+  const isSalidaValid = salida.fecha !== '' && salida.numDocumento.trim() !== '' && salida.monto !== '';
 
   const handleEntradaSubmit = async (e) => {
     e.preventDefault();
@@ -102,58 +120,134 @@ function App() {
       </div>
 
       {activeTab === 'entradas' && (
-        <form onSubmit={handleEntradaSubmit}>
-          <div className="form-group">
-            <label>Fecha de Ingreso</label>
-            <input type="date" value={entrada.fecha} onChange={e => setEntrada({...entrada, fecha: e.target.value})} required />
-          </div>
-          <div className="form-group">
-            <label>Número de Recibo</label>
-            <input type="text" value={entrada.nroRecibo} onChange={e => setEntrada({...entrada, nroRecibo: e.target.value})} required />
-          </div>
-          <div className="form-group">
-            <label>Monto</label>
-            <input type="number" min="1" value={entrada.monto} onChange={e => setEntrada({...entrada, monto: e.target.value})} required />
-          </div>
-          <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Procesando...' : 'Registrar Entrada'}
-          </button>
-        </form>
+        <div className="form-wrapper">
+          <form onSubmit={handleEntradaSubmit}>
+            <div className="form-group">
+              <label>Fecha de Ingreso</label>
+              <div className="input-icon-wrapper">
+                <FaCalendarAlt className="input-icon" />
+                <input 
+                  type="date" 
+                  value={entrada.fecha} 
+                  onChange={e => setEntrada({...entrada, fecha: e.target.value})} 
+                  className={entrada.fecha === '' ? 'input-error' : 'input-success'}
+                  required 
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Número de Recibo</label>
+              <div className="input-icon-wrapper">
+                <FaReceipt className="input-icon" />
+                <input 
+                  type="text" 
+                  placeholder="Ingrese el número de recibo"
+                  value={entrada.nroRecibo} 
+                  onChange={e => setEntrada({...entrada, nroRecibo: e.target.value})} 
+                  className={entrada.nroRecibo.trim() === '' ? 'input-error' : 'input-success'}
+                  required 
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Monto</label>
+              <div className="input-icon-wrapper">
+                <FaMoneyBillWave className="input-icon" />
+                <input 
+                  type="text" /* Cambiado a text para permitir los puntos */
+                  placeholder="Ingrese el monto"
+                  value={formatCurrency(entrada.monto)} 
+                  onChange={e => handleMontoChange(e, entrada, setEntrada)} 
+                  className={entrada.monto === '' ? 'input-error' : 'input-success'}
+                  required 
+                />
+              </div>
+            </div>
+            <button type="submit" className="submit-btn" disabled={loading || !isEntradaValid}>
+              {loading ? 'Procesando...' : 'Registrar Entrada'}
+            </button>
+          </form>
+        </div>
       )}
 
       {activeTab === 'salidas' && (
-        <form onSubmit={handleSalidaSubmit}>
-          <div className="form-group">
-            <label>Fecha de Salida</label>
-            <input type="date" value={salida.fecha} onChange={e => setSalida({...salida, fecha: e.target.value})} required />
-          </div>
-          <div className="form-group">
-            <label>Tipo Documento</label>
-            <select value={salida.tipoDocumento} onChange={e => setSalida({...salida, tipoDocumento: e.target.value})}>
-              <option value="Boleta">Boleta</option>
-              <option value="Factura">Factura</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Número de Documento</label>
-            <input type="text" value={salida.numDocumento} onChange={e => setSalida({...salida, numDocumento: e.target.value})} required />
-          </div>
-          <div className="form-group">
-            <label>Motivo</label>
-            <select value={salida.motivo} onChange={e => setSalida({...salida, motivo: e.target.value})}>
-              {motivosSalida.map(m => (
-                <option key={m} value={m}>{m}</option>
-              ))}
-            </select>
-          </div>
-          <div className="form-group">
-            <label>Monto</label>
-            <input type="number" min="1" value={salida.monto} onChange={e => setSalida({...salida, monto: e.target.value})} required />
-          </div>
-          <button type="submit" className="submit-btn" disabled={loading}>
-            {loading ? 'Procesando...' : 'Registrar Salida'}
-          </button>
-        </form>
+        <div className="form-wrapper">
+          <form onSubmit={handleSalidaSubmit}>
+            <div className="form-group">
+              <label>Fecha de Salida</label>
+              <div className="input-icon-wrapper">
+                <FaCalendarAlt className="input-icon" />
+                <input 
+                  type="date" 
+                  value={salida.fecha} 
+                  onChange={e => setSalida({...salida, fecha: e.target.value})} 
+                  className={salida.fecha === '' ? 'input-error' : 'input-success'}
+                  required 
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Tipo Documento</label>
+              <div className="input-icon-wrapper">
+                <FaFileInvoice className="input-icon" />
+                <select 
+                  value={salida.tipoDocumento} 
+                  onChange={e => setSalida({...salida, tipoDocumento: e.target.value})}
+                  className="input-success"
+                >
+                  <option value="Boleta">Boleta</option>
+                  <option value="Factura">Factura</option>
+                </select>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Número de Documento</label>
+              <div className="input-icon-wrapper">
+                <FaReceipt className="input-icon" />
+                <input 
+                  type="text" 
+                  placeholder="Ingrese el número de documento"
+                  value={salida.numDocumento} 
+                  onChange={e => setSalida({...salida, numDocumento: e.target.value})} 
+                  className={salida.numDocumento.trim() === '' ? 'input-error' : 'input-success'}
+                  required 
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Motivo</label>
+              <div className="input-icon-wrapper">
+                <FaClipboardList className="input-icon" />
+                <select 
+                  value={salida.motivo} 
+                  onChange={e => setSalida({...salida, motivo: e.target.value})}
+                  className="input-success"
+                >
+                  {motivosSalida.map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Monto</label>
+              <div className="input-icon-wrapper">
+                <FaMoneyBillWave className="input-icon" />
+                <input 
+                  type="text" /* Cambiado a text para permitir los puntos */
+                  placeholder="Ingrese el monto"
+                  value={formatCurrency(salida.monto)} 
+                  onChange={e => handleMontoChange(e, salida, setSalida)} 
+                  className={salida.monto === '' ? 'input-error' : 'input-success'}
+                  required 
+                />
+              </div>
+            </div>
+            <button type="submit" className="submit-btn" disabled={loading || !isSalidaValid}>
+              {loading ? 'Procesando...' : 'Registrar Salida'}
+            </button>
+          </form>
+        </div>
       )}
 
       {activeTab === 'reporte' && (
@@ -181,8 +275,8 @@ function App() {
                   <tr>
                     <th>Nro</th>
                     <th>Fecha</th>
-                    <th>Tipo Doc</th>
-                    <th>Num Doc</th>
+                    <th>Tipo Documento</th>
+                    <th>Número Documento</th>
                     <th>Motivo</th>
                     <th>Ingreso</th>
                     <th>Salida</th>
