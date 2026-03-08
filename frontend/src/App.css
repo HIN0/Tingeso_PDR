@@ -9,7 +9,7 @@ body {
 
 /* Contenedor principal */
 .container {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
   background: white;
   padding: 30px;
@@ -104,6 +104,7 @@ th, td {
   padding: 12px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+  white-space: nowrap;
 }
 
 /* Estilo para las filas pares */
@@ -175,4 +176,13 @@ button.submit-btn:disabled {
 .form-wrapper {
   max-width: 450px; 
   margin: 0 auto;   
+}
+
+/* Colores dinámicos para los iconos de los formularios */
+.icon-error {
+  color: #dc3545 !important;
+}
+
+.icon-success {
+  color: #28a745 !important;
 }

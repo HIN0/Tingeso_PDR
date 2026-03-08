@@ -41,12 +41,14 @@ function App() {
 
   // Función para limpiar el texto y dejar solo los números
   const handleMontoChange = (e, state, setState) => {
-    const rawValue = e.target.value.replace(/\D/g, ''); // Expresión regular que elimina todo lo que no sea dígito
+    const rawValue = e.target.value.replace(/\D/g, '');
     setState({ ...state, monto: rawValue });
   };
 
   const isEntradaValid = entrada.fecha !== '' && entrada.nroRecibo.trim() !== '' && entrada.monto !== '';
   const isSalidaValid = salida.fecha !== '' && salida.numDocumento.trim() !== '' && salida.monto !== '';
+  // Validación estricta para el reporte
+  const isReporteValid = fechasReporte.inicio !== '' && fechasReporte.fin !== '';
 
   const handleEntradaSubmit = async (e) => {
     e.preventDefault();
@@ -125,7 +127,7 @@ function App() {
             <div className="form-group">
               <label>Fecha de Ingreso</label>
               <div className="input-icon-wrapper">
-                <FaCalendarAlt className="input-icon" />
+                <FaCalendarAlt className={`input-icon ${entrada.fecha === '' ? 'icon-error' : 'icon-success'}`} />
                 <input 
                   type="date" 
                   value={entrada.fecha} 
@@ -138,7 +140,7 @@ function App() {
             <div className="form-group">
               <label>Número de Recibo</label>
               <div className="input-icon-wrapper">
-                <FaReceipt className="input-icon" />
+                <FaReceipt className={`input-icon ${entrada.nroRecibo.trim() === '' ? 'icon-error' : 'icon-success'}`} />
                 <input 
                   type="text" 
                   placeholder="Ingrese el número de recibo"
@@ -152,9 +154,9 @@ function App() {
             <div className="form-group">
               <label>Monto</label>
               <div className="input-icon-wrapper">
-                <FaMoneyBillWave className="input-icon" />
+                <FaMoneyBillWave className={`input-icon ${entrada.monto === '' ? 'icon-error' : 'icon-success'}`} />
                 <input 
-                  type="text" /* Cambiado a text para permitir los puntos */
+                  type="text" 
                   placeholder="Ingrese el monto"
                   value={formatCurrency(entrada.monto)} 
                   onChange={e => handleMontoChange(e, entrada, setEntrada)} 
@@ -176,7 +178,7 @@ function App() {
             <div className="form-group">
               <label>Fecha de Salida</label>
               <div className="input-icon-wrapper">
-                <FaCalendarAlt className="input-icon" />
+                <FaCalendarAlt className={`input-icon ${salida.fecha === '' ? 'icon-error' : 'icon-success'}`} />
                 <input 
                   type="date" 
                   value={salida.fecha} 
@@ -189,7 +191,7 @@ function App() {
             <div className="form-group">
               <label>Tipo Documento</label>
               <div className="input-icon-wrapper">
-                <FaFileInvoice className="input-icon" />
+                <FaFileInvoice className="input-icon icon-success" />
                 <select 
                   value={salida.tipoDocumento} 
                   onChange={e => setSalida({...salida, tipoDocumento: e.target.value})}
@@ -203,7 +205,7 @@ function App() {
             <div className="form-group">
               <label>Número de Documento</label>
               <div className="input-icon-wrapper">
-                <FaReceipt className="input-icon" />
+                <FaReceipt className={`input-icon ${salida.numDocumento.trim() === '' ? 'icon-error' : 'icon-success'}`} />
                 <input 
                   type="text" 
                   placeholder="Ingrese el número de documento"
@@ -217,7 +219,7 @@ function App() {
             <div className="form-group">
               <label>Motivo</label>
               <div className="input-icon-wrapper">
-                <FaClipboardList className="input-icon" />
+                <FaClipboardList className="input-icon icon-success" />
                 <select 
                   value={salida.motivo} 
                   onChange={e => setSalida({...salida, motivo: e.target.value})}
@@ -232,9 +234,9 @@ function App() {
             <div className="form-group">
               <label>Monto</label>
               <div className="input-icon-wrapper">
-                <FaMoneyBillWave className="input-icon" />
+                <FaMoneyBillWave className={`input-icon ${salida.monto === '' ? 'icon-error' : 'icon-success'}`} />
                 <input 
-                  type="text" /* Cambiado a text para permitir los puntos */
+                  type="text" 
                   placeholder="Ingrese el monto"
                   value={formatCurrency(salida.monto)} 
                   onChange={e => handleMontoChange(e, salida, setSalida)} 
@@ -252,17 +254,35 @@ function App() {
 
       {activeTab === 'reporte' && (
         <div>
-          <form onSubmit={generarReporte} style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-            <div className="form-group" style={{ flex: 1 }}>
+          <form onSubmit={generarReporte} style={{ display: 'flex', gap: '15px', marginBottom: '20px', alignItems: 'flex-end' }}>
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
               <label>Fecha Inicio</label>
-              <input type="date" value={fechasReporte.inicio} onChange={e => setFechasReporte({...fechasReporte, inicio: e.target.value})} required />
+              <div className="input-icon-wrapper">
+                <FaCalendarAlt className={`input-icon ${fechasReporte.inicio === '' ? 'icon-error' : 'icon-success'}`} />
+                <input 
+                  type="date" 
+                  value={fechasReporte.inicio} 
+                  onChange={e => setFechasReporte({...fechasReporte, inicio: e.target.value})} 
+                  className={fechasReporte.inicio === '' ? 'input-error' : 'input-success'}
+                  required 
+                />
+              </div>
             </div>
-            <div className="form-group" style={{ flex: 1 }}>
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
               <label>Fecha Fin</label>
-              <input type="date" value={fechasReporte.fin} onChange={e => setFechasReporte({...fechasReporte, fin: e.target.value})} required />
+              <div className="input-icon-wrapper">
+                <FaCalendarAlt className={`input-icon ${fechasReporte.fin === '' ? 'icon-error' : 'icon-success'}`} />
+                <input 
+                  type="date" 
+                  value={fechasReporte.fin} 
+                  onChange={e => setFechasReporte({...fechasReporte, fin: e.target.value})} 
+                  className={fechasReporte.fin === '' ? 'input-error' : 'input-success'}
+                  required 
+                />
+              </div>
             </div>
-            <div className="form-group" style={{ flex: 1, justifyContent: 'flex-end' }}>
-              <button type="submit" className="submit-btn" disabled={loading}>
+            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+              <button type="submit" className="submit-btn" disabled={loading || !isReporteValid}>
                 {loading ? 'Consultando...' : 'Generar Reporte'}
               </button>
             </div>
