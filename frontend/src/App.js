@@ -1,45 +1,35 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { FaCalendarAlt, FaReceipt, FaMoneyBillWave, FaFileInvoice, FaClipboardList } from 'react-icons/fa';
+import Swal from 'sweetalert2'; // Importamos SweetAlert2
 import './App.css';
 
 const API_URL = 'http://localhost:8080/api';
 
 function App() {
   const [activeTab, setActiveTab] = useState('entradas');
-  const [status, setStatus] = useState({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
 
-  // El monto se guarda como string de solo números ('440000') para facilitar el manejo
   const [entrada, setEntrada] = useState({ fecha: '', nroRecibo: '', monto: '' });
   const [salida, setSalida] = useState({ fecha: '', tipoDocumento: 'Boleta', numDocumento: '', motivo: 'Artículos de oficina', monto: '' });
   const [fechasReporte, setFechasReporte] = useState({ inicio: '', fin: '' });
   const [datosReporte, setDatosReporte] = useState([]);
 
   const motivosSalida = [
-    "Artículos de oficina", 
-    "Productos de limpieza", 
-    "Reparaciones", 
-    "Combustible", 
-    "Taxis", 
-    "Alimentación", 
-    "Varios"
+    "Artículos de oficina", "Productos de limpieza", "Reparaciones", "Combustible", "Taxis", "Alimentación", "Varios"
   ];
 
-  const showMessage = (type, message) => {
-    setStatus({ type, message });
-    setTimeout(() => setStatus({ type: '', message: '' }), 5000);
-  };
+  // Cálculos automáticos para los totales (Heurística #1: Visibilidad del estado)
+  const totalIngresos = datosReporte.reduce((acc, row) => acc + (row.ingreso || 0), 0);
+  const totalSalidas = datosReporte.reduce((acc, row) => acc + (row.salida || 0), 0);
 
-  // Función para formatear el dinero visualmente (ej: 440000 -> 440.000)
   const formatCurrency = (val) => {
-    if (val === '') return '';
+    if (val === '' || val === null) return '0';
     const parsed = parseInt(val, 10);
-    if (isNaN(parsed)) return '';
+    if (isNaN(parsed)) return '0';
     return parsed.toLocaleString('es-CL');
   };
 
-  // Función para limpiar el texto y dejar solo los números
   const handleMontoChange = (e, state, setState) => {
     const rawValue = e.target.value.replace(/\D/g, '');
     setState({ ...state, monto: rawValue });
@@ -47,7 +37,6 @@ function App() {
 
   const isEntradaValid = entrada.fecha !== '' && entrada.nroRecibo.trim() !== '' && entrada.monto !== '';
   const isSalidaValid = salida.fecha !== '' && salida.numDocumento.trim() !== '' && salida.monto !== '';
-  // Validación estricta para el reporte
   const isReporteValid = fechasReporte.inicio !== '' && fechasReporte.fin !== '';
 
   const handleEntradaSubmit = async (e) => {
@@ -56,10 +45,17 @@ function App() {
     try {
       const payload = { ...entrada, monto: Number(entrada.monto) };
       await axios.post(`${API_URL}/entradas/`, payload);
-      showMessage('success', 'Entrada registrada correctamente.');
+      
+      Swal.fire({
+        icon: 'success',
+        title: '¡Entrada Registrada!',
+        text: `Se ingresaron $${formatCurrency(entrada.monto)} correctamente.`,
+        confirmButtonColor: '#28a745'
+      });
+      
       setEntrada({ fecha: '', nroRecibo: '', monto: '' });
     } catch (error) {
-      showMessage('error', `Error al registrar entrada: ${error.message}`);
+      Swal.fire('Error', 'No se pudo registrar la entrada', 'error');
     } finally {
       setLoading(false);
     }
@@ -71,10 +67,18 @@ function App() {
     try {
       const payload = { ...salida, monto: Number(salida.monto) };
       await axios.post(`${API_URL}/salidas/`, payload);
-      showMessage('success', 'Salida registrada correctamente.');
+      
+      Swal.fire({
+        icon: 'success',
+        title: '¡Salida Registrada!',
+        text: 'El gasto ha sido guardado en el sistema.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      
       setSalida({ ...salida, numDocumento: '', monto: '' });
     } catch (error) {
-      showMessage('error', `Error al registrar salida: ${error.message}`);
+      Swal.fire('Error', 'Hubo un problema al guardar la salida', 'error');
     } finally {
       setLoading(false);
     }
@@ -86,13 +90,30 @@ function App() {
     try {
       const res = await axios.get(`${API_URL}/resumen/?inicio=${fechasReporte.inicio}&fin=${fechasReporte.fin}`);
       setDatosReporte(res.data);
+      
       if(res.data.length === 0) {
-        showMessage('success', 'No hay registros en estas fechas.');
+        Swal.fire('Sin registros', 'No hay movimientos en las fechas seleccionadas', 'info');
       } else {
-        setStatus({ type: '', message: '' });
+        // Ventana flotante moderna con los totales solicitados
+        const ingresosNum = res.data.reduce((acc, row) => acc + (row.ingreso || 0), 0);
+        const salidasNum = res.data.reduce((acc, row) => acc + (row.salida || 0), 0);
+
+        Swal.fire({
+          title: 'Resumen Generado',
+          html: `
+            <div style="text-align: left; font-size: 1.1em;">
+              <p>🟢 <b>Total Entradas:</b> $${ingresosNum.toLocaleString('es-CL')}</p>
+              <p>🔴 <b>Total Salidas:</b> $${salidasNum.toLocaleString('es-CL')}</p>
+              <hr>
+              <p>💰 <b>Saldo Neto:</b> $${(ingresosNum - salidasNum).toLocaleString('es-CL')}</p>
+            </div>
+          `,
+          icon: 'success',
+          confirmButtonText: 'Ver detalles en tabla'
+        });
       }
     } catch (error) {
-      showMessage('error', `Error al generar el reporte: ${error.message}`);
+      Swal.fire('Error Crítico', 'Error al generar reporte: ' + error.message, 'error');
     } finally {
       setLoading(false);
     }
@@ -102,23 +123,10 @@ function App() {
     <div className="container">
       <h1 style={{textAlign: 'center'}}>Control de Caja Chica</h1>
       
-      {status.message && (
-        <div className={`alert ${status.type}`}>{status.message}</div>
-      )}
-
       <div className="tabs">
-        <button 
-          className={`tab-button ${activeTab === 'entradas' ? 'active' : ''}`} 
-          onClick={() => setActiveTab('entradas')}
-        >Entradas</button>
-        <button 
-          className={`tab-button ${activeTab === 'salidas' ? 'active' : ''}`} 
-          onClick={() => setActiveTab('salidas')}
-        >Salidas</button>
-        <button 
-          className={`tab-button ${activeTab === 'reporte' ? 'active' : ''}`} 
-          onClick={() => setActiveTab('reporte')}
-        >Reporte</button>
+        <button className={`tab-button ${activeTab === 'entradas' ? 'active' : ''}`} onClick={() => setActiveTab('entradas')}>Entradas</button>
+        <button className={`tab-button ${activeTab === 'salidas' ? 'active' : ''}`} onClick={() => setActiveTab('salidas')}>Salidas</button>
+        <button className={`tab-button ${activeTab === 'reporte' ? 'active' : ''}`} onClick={() => setActiveTab('reporte')}>Reporte</button>
       </div>
 
       {activeTab === 'entradas' && (
@@ -281,11 +289,9 @@ function App() {
                 />
               </div>
             </div>
-            <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
-              <button type="submit" className="submit-btn" disabled={loading || !isReporteValid}>
-                {loading ? 'Consultando...' : 'Generar Reporte'}
-              </button>
-            </div>
+            <button type="submit" className="submit-btn" style={{ flex: 1 }} disabled={loading || !isReporteValid}>
+              {loading ? 'Consultando...' : 'Generar Reporte'}
+            </button>
           </form>
 
           {datosReporte.length > 0 && (
@@ -293,30 +299,31 @@ function App() {
               <table>
                 <thead>
                   <tr>
-                    <th>Nro</th>
-                    <th>Fecha</th>
-                    <th>Tipo Documento</th>
-                    <th>Número Documento</th>
-                    <th>Motivo</th>
-                    <th>Ingreso</th>
-                    <th>Salida</th>
-                    <th>Saldo</th>
+                    <th>Nro</th><th>Fecha</th><th>Tipo Documento</th><th>Número Documento</th>
+                    <th>Motivo</th><th>Ingreso</th><th>Salida</th><th>Saldo</th>
                   </tr>
                 </thead>
                 <tbody>
                   {datosReporte.map((row) => (
                     <tr key={row.nro}>
-                      <td>{row.nro}</td>
-                      <td>{row.fecha}</td>
-                      <td>{row.tipoDoc || '-'}</td>
-                      <td>{row.numDoc || '-'}</td>
+                      <td>{row.nro}</td><td>{row.fecha}</td>
+                      <td>{row.tipoDoc || '-'}</td><td>{row.numDoc || '-'}</td>
                       <td>{row.motivo}</td>
-                      <td style={{ color: 'green' }}>{row.ingreso ? row.ingreso.toLocaleString('es-CL') : '0'}</td>
-                      <td style={{ color: 'red' }}>{row.salida ? row.salida.toLocaleString('es-CL') : '0'}</td>
-                      <td style={{ fontWeight: 'bold' }}>{row.saldo.toLocaleString('es-CL')}</td>
+                      <td style={{ color: 'green' }}>{formatCurrency(row.ingreso)}</td>
+                      <td style={{ color: 'red' }}>{formatCurrency(row.salida)}</td>
+                      <td style={{ fontWeight: 'bold' }}>{formatCurrency(row.saldo)}</td>
                     </tr>
                   ))}
                 </tbody>
+                {/* FILA DE TOTALES AL FINAL */}
+                <tfoot>
+                  <tr style={{ backgroundColor: '#f9f9f9', fontWeight: 'bold', borderTop: '2px solid #ccc' }}>
+                    <td colSpan="5" style={{ textAlign: 'right', paddingRight: '15px' }}>TOTALES:</td>
+                    <td style={{ color: 'green' }}>{formatCurrency(totalIngresos)}</td>
+                    <td style={{ color: 'red' }}>{formatCurrency(totalSalidas)}</td>
+                    <td style={{ backgroundColor: '#e8f4fd' }}>{formatCurrency(totalIngresos - totalSalidas)}</td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           )}
